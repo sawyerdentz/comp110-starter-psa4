@@ -4,8 +4,8 @@ Module: song_generator
 Module with functions for PSA #4 of COMP 110 (Fall 2019).
 
 Authors:
-1) Name - USD Email Address
-2) Name - USD Email Address
+1) Sawyer Dentz - sdentz@sandiego.edu
+2) Matt Oderlin - moderlin@sandiego.edu
 """
 
 import sound
@@ -58,9 +58,18 @@ def mix_sounds(snd1, snd2):
     single, overlapping sound.
     """
 
-    # Add your implementation here and then remove this comment.
+    if len(snd1) > len(snd2):
+        longer_sound = snd1.copy()
+        shorter_sound = snd2
+    else:
+        longer_sound = snd2.copy()
+        shorter_sound = snd1
 
-    return None  # this is a placeholder. Remove this line.
+    for i in range(len(shorter_sound)):
+        longer_sound[i].left += shorter_sound[i].left
+        longer_sound[i].right += shorter_sound[i].right
+
+    return longer_sound
 
 
 def song_generator(notestring):
@@ -75,9 +84,62 @@ def song_generator(notestring):
     (type: Sound) A song generated from the notestring given as a paramter.
     """
 
-    # Add your implementation here and then remove this comment.
+    song_1 = sound.create_silent_sound(1)
+    song_2 = sound.create_silent_sound(1)
+    length = 1
+    octave = 0
+    volume = 1
+    part_2 = False
+    bpm = 180
 
-    return None  # this is a placeholder. Remove this line.
+    # Set bpm to what is inside of the substring
+    if "]" in notestring:
+        notestring_list = notestring.split("]")
+        bpm = int(notestring_list[0][1:])
+        notestring = notestring_list[1]
+
+    for n in notestring:
+        # Test for pause
+        if n == "P":
+            if not part_2:
+                song_1 += sound.create_silent_sound(int(44100 / (bpm / 60)) * length)
+                length = 1
+            else:
+                song_2 += sound.create_silent_sound(int(44100 / (bpm / 60)) * length)
+                length = 1
+        
+        # Test for note
+        elif n in ["A", "B", "C", "D", "E", "F", "G"]:
+            if not part_2:
+                song_1 += scale_volume(sound.Note(n, int(44100 / (bpm / 60)) * length, octave), volume)
+                length = 1
+            else:
+                song_2 += scale_volume(sound.Note(n, int(44100 / (bpm / 60)) * length, octave), volume)
+                length = 1
+        
+        # Test for octave
+        elif n == ">":
+            octave += 1
+        elif n == "<":
+            octave -= 1
+
+        # Test for volume
+        elif n == "+":
+            volume += 0.2
+        elif n == "-":
+            volume -= 0.2
+
+        # Test for parts
+        elif n == "|":
+            length = 1
+            octave = 0
+            volume = 0
+            part_2 = True
+
+        # Otherwise, n must be length
+        elif n not in ["[", "]"]:
+            length = int(n)
+    return mix_sounds(song_1, song_2)
 
 
 """
