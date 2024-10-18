@@ -137,7 +137,7 @@ def song_generator(notestring):
             part_2 = True
 
         # Otherwise, n must be length
-        elif n not in ["[", "]"]:
+        else:
             length = int(n)
     return mix_sounds(song_1, song_2)
 
